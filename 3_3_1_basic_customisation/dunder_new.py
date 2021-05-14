@@ -21,6 +21,9 @@ if __new__() does not return an instance of `cls`, then the new instance's __ini
 
 __new__() is intended mainly to allow subclasses of immutable types (like int, str, or tuple) to customize instance
 creation.  It is also commonly overridden in custom meta classes in order to customize class creation.
+
+__new__() has potential to create `magic` effects, which is why metaclasses are often considered more power than
+99% of use cases that are ever necessary.
 """
 
 from __future__ import annotations
@@ -30,9 +33,7 @@ class NormalNewReturn:
 
     def __new__(cls, x: int, y: int) -> NormalNewReturn:
         cls_instance = super().__new__(cls)
-        # Every instance of `New` will bolt on a `z` attr.
         cls_instance.x, cls_instance.y = x, y
-        cls_instance.z = 1337
         return cls_instance
 
     def __init__(self, x: int, y: int) -> None:
