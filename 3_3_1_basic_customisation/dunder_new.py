@@ -20,17 +20,112 @@ and the remaining arguments are the same as were passed to the object constructo
 if __new__() does not return an instance of `cls`, then the new instance's __init__() method will not be invoked.
 
 __new__() is intended mainly to allow subclasses of immutable types (like int, str, or tuple) to customize instance
-creation.  It is also commonly overriden in custom metaclasses in order to customize class creation.
+creation.  It is also commonly overridden in custom meta classes in order to customize class creation.
 """
 
 from __future__ import annotations
-import typing
 
-class New:
 
-    def __new__(cls, name: str, bases: typing.Tuple[type, ...], attrs: typing.Dict[str, typing.Any]) -> New:
-        return cls(name, bases, attrs)
+class NormalNewReturn:
+
+    def __new__(cls, x: int, y: int) -> NormalNewReturn:
+        cls_instance = super().__new__(cls)
+        # Every instance of `New` will bolt on a `z` attr.
+        cls_instance.x, cls_instance.y = x, y
+        cls_instance.z = 1337
+        return cls_instance
+
+    def __init__(self, x: int, y: int) -> None:
+        """
+        >>> NormalNewReturn(100, 200) #doctest: +ELLIPSIS
+        Dunder __new__ returned an instance of `NormalNewReturn` so init was called
+        ...
+        """
+        self.x = x
+        self.y = y
+        print("Dunder __new__ returned an instance of `NormalNewReturn` so init was called")
+
+
+# -----
+
+
+class A:
+
+    def __new__(cls) -> A:
+        return super().__new__(B)
+
+    def __init__(self) -> None:
+        """
+        >>> A() #doctest: +ELLIPSIS
+        Dunder init still gets called here..
+        ...
+        """
+        print("Dunder init still gets called here..")
+
+class B(A):
+    ...
+
+
+# -----
+
+
+class NoInitHandoff:
+    def __new__(cls) -> bool:
+        print("Running __new__")
+        return True
+
+    def __init__(self) -> None:
+        """
+        >>> NoInitHandoff()
+        Running __new__
+        True
+        """
+        print("Not called")
+
+
+# -----
+
+
+"""
+A practical example;  Lets say we are framework developers.  We are building out a common `BasePage`
+for the `Page Object Model` in a selenium based test automation framework.  In order to prevent the 
+users from passing a driver explicitly into each instantiation of the page, when creating a new instance
+of the page, the __new__ functionality will implicitly inject a driver into the page, this is abstracted
+away from the user and hidden deep in the framework.
+"""
+
+
+class Driver:
+    def __init__(self) -> None:
+        # Create some sort of delegate web driver
+        ...
+
+    def open_page(self, url: str) -> Driver:
+        print("Opened:", url)
+        return self
+
+
+class BasePage:
+    def __new__(cls) -> BasePage:
+        instance = super().__new__(cls)
+        instance.driver = Driver()
+        return instance
+
+class LoginPage(BasePage):
+    """
+    >>> LoginPage().load_login_page() #doctest: +ELLIPSIS
+    I have a driver attr but never provided one
+    Opened: https://mysite.com/app/login.php
+    ...
+    """
+    def __init__(self) -> None:
+        print("I have a driver attr but never provided one")
+
+    def load_login_page(self) -> LoginPage:
+        self.driver.open_page("https://mysite.com/app/login.php")
+        return self
 
 
 if __name__ == "__main__":
-    ...
+    import doctest
+    doctest.testmod()
