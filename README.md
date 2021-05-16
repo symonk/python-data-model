@@ -2,7 +2,7 @@
 
 -----
 
-## 3.3 Special Method Names
+## 03 Special Method Names
 
 A class can implement certain operations that are invoked by special syntax (such as arithmetic operations, subscripting 
 and slicing) by defining methods with special names.  This is Pythons approach to operator overloading, allowing classes
