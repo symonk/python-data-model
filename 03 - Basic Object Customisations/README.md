@@ -2,7 +2,7 @@
 
 -----
 
-## 03 - Basic Object CUstomisations
+## 03 - Basic Object Customisations
 
 A class can implement certain operations that are invoked by special syntax (such as arithmetic operations, subscripting 
 and slicing) by defining methods with special names.  This is Pythons approach to operator overloading, allowing classes
